@@ -223,14 +223,16 @@ static IRAM_ATTR void s_i2c_handle_clock_stretch(i2c_slave_dev_private_t* i2c_sl
 
 static IRAM_ATTR void s_slave_fifo_isr_handler(uint32_t int_mask, i2c_slave_dev_private_t *i2c_slave)
 {
-    if (int_mask & I2C_INTR_STRETCH) {
-        s_i2c_handle_clock_stretch(i2c_slave);
+    // Note: call this first, in case a stop and a new transaction has started
+    // before the interrupt handler could run
+    if (int_mask & I2C_INTR_SLV_COMPLETE) {
+        s_i2c_handle_complete(i2c_slave);
     }
     if (int_mask & I2C_INTR_SLV_RXFIFO_WM) {
         s_i2c_handle_rx_fifo_wm(i2c_slave);
     }
-    if (int_mask & I2C_INTR_SLV_COMPLETE) {
-        s_i2c_handle_complete(i2c_slave);
+    if (int_mask & I2C_INTR_STRETCH) {
+        s_i2c_handle_clock_stretch(i2c_slave);
     }
     if (int_mask & I2C_INTR_SLV_TXFIFO_WM) {
         s_i2c_handle_tx_fifo_wm(i2c_slave);
